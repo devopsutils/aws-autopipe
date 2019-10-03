@@ -1,0 +1,79 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Branch management components
+
+Parameters:
+
+  ArtifactBucketName:
+    Description: The ARN of the S3 bucket used for all deployment artifacts
+    Type: String
+
+  CodeCommitRepoArn:
+    Description: The ARN of the CodeCommit repository
+    Type: String
+
+Outputs:
+
+  LambdaArn:
+    Value: !GetAtt Lambda.Arn
+    Description: The ARN of the lambda that manages code pipelines
+
+Resources:
+
+  LambdaFunctionPolicy:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt Lambda.Arn
+      Principal: codecommit.amazonaws.com
+      SourceArn: !Ref CodeCommitRepoArn
+
+  Lambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${AWS::StackName}"
+      Description: Lambda that deploys or destroys a pipeline for a new branch
+      Handler: lambda/index.handler
+      Runtime: nodejs10.x
+      CodeUri: lambda/
+      MemorySize: 128
+      Timeout: 900
+      Role: !GetAtt LambdaRole.Arn
+      Environment:
+        Variables:
+          ArtifactBucketName: !Ref ArtifactBucketName
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-lambda"
+      Description: "Role for Lambda"
+      AssumeRolePolicyDocument: |
+        {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": "sts:AssumeRole",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ]
+        }
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-lambda"
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codepipeline:CreatePipeline
+                  - codepipeline:DeletePipeline
+                Resource: "*"

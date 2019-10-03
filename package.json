@@ -1,0 +1,33 @@
+{
+  "name": "@rimesime/aws-autocidi",
+  "version": "0.0.5",
+  "description": "Automatic CI/CD for AWS",
+  "author": "Simon Schmitt",
+  "license": "ISC",
+  "main": "autocidi.js",
+  "bin": {
+    "autocidi": "autocidi.js"
+  },
+  "dependencies": {
+    "shelljs": "^0.8.3",
+    "yargs": "^14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rimesime/aws-autocidi.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rimesime/aws-autocidi/issues"
+  },
+  "homepage": "https://github.com/rimesime/aws-autocidi#readme",
+  "keywords": [
+    "AWS",
+    "CI/CD",
+    "Continous Integration",
+    "Continous Deployment",
+    "CodePipeline",
+    "CodeBuild",
+    "CodeCommit",
+    "Cloudformation"
+  ]
+}

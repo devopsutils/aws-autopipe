@@ -1,0 +1,10 @@
+{
+  "name": "pipeline-lambda",
+  "version": "0.0.1",
+  "description": "Lambda that deploys or destroys a pipeline for a new branch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Simon Schmitt"
+}
