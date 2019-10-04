@@ -21,7 +21,7 @@ CodeCommitRepoArn=$(aws codecommit get-repository \
 
 case "$Mode" in
   create-management)
-    # No branch specified, create management stack
+    # Create management stack
     echo "Creating management stack $ManagementStackName"
 
     # Create company-wide S3 bucket for artifacts (doesn't do anything if already existing)
@@ -57,6 +57,7 @@ case "$Mode" in
                        --output=text \
                        --profile "$AWSCredentialsProfile"
                      )
+
     aws codecommit put-repository-triggers \
                    --repository-name "$CodeCommitRepoName" \
                    --triggers name=NewBranch,destinationArn="$LambdaArn",branches=[],events=createReference \
@@ -68,7 +69,6 @@ case "$Mode" in
   create-branch)
     # Create branch pipeline
     echo "Creating branch pipeline $PipelineStackName"
-    echo 'Not implemented yet.'
 
     # Get Lambda of the management stack
     LambdaArn=$(aws cloudformation describe-stacks \
@@ -77,6 +77,7 @@ case "$Mode" in
                        --output=text \
                        --profile "$AWSCredentialsProfile"
                      )
+
     aws lambda invoke \
                --function-name "$LambdaArn" \
                --payload "{\"Records\":[{\"eventTriggerName\":\"NewBranch\",\"codecommit\":{\"references\":[{\"ref\":\"a/a/$BranchName\"}]}}]}" \
@@ -87,9 +88,11 @@ case "$Mode" in
   delete-management)
     # Tear down management stack
     echo "Deleting management stack $ManagementStackName"
+
     aws cloudformation delete-stack \
                        --stack-name "$ManagementStackName"\
                        --profile "$AWSCredentialsProfile"
+
     aws codecommit put-repository-triggers \
                    --repository-name "$CodeCommitRepoName" \
                    --triggers [] \
@@ -99,6 +102,7 @@ case "$Mode" in
   delete-branch)
     # Tear down that branch pipeline
     echo "Deleting branch pipeline $PipelineStackName"
+
     aws cloudformation delete-stack \
                  --stack-name "$PipelineStackName"\
                  --profile "$AWSCredentialsProfile"
