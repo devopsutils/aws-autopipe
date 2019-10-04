@@ -74,6 +74,5 @@ Resources:
                 Resource: "*"
               - Effect: Allow
                 Action:
-                  - codepipeline:CreatePipeline
-                  - codepipeline:DeletePipeline
+                  - cloudformation:*
                 Resource: "*"

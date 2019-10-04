@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-ArtifactBucketName=$1
-AWSCredentialsProfile=$2
+CodeCommitRepoName=$1
+ArtifactBucketName=$2
+AWSCredentialsProfile=$3
 
 # Install Lambda dependencies
 cd management/lambda && npm install && npm ci && cd ../..
 
 # Retrieve this CodeCommit repository name and Arn
-CodeCommitRepoName=$(basename $(dirname $(dirname $(dirname $(pwd)))))
 CodeCommitRepoArn=$(aws codecommit get-repository \
                         --repository-name "$CodeCommitRepoName" \
                         --output=text \
@@ -48,5 +48,7 @@ LambdaArn=$(aws cloudformation describe-stacks \
                  )
 aws codecommit put-repository-triggers \
                --repository-name "$CodeCommitRepoName" \
-               --triggers name=Branching,destinationArn="$LambdaArn",branches=[],events=createReference,deleteReference\
+               --triggers name=NewBranch,destinationArn="$LambdaArn",branches=[],events=createReference \
+               name=DeleteBranch,destinationArn="$LambdaArn",branches=[],events=deleteReference \
+               name=UpdateBranch,destinationArn="$LambdaArn",branches=[],events=updateReference\
                --profile "$AWSCredentialsProfile"
