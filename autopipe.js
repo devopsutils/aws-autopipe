@@ -54,14 +54,14 @@ const argv = yargs
   .argv;
 
 async function main() {
-  console.log(`This is autocidi!`);
-  shell.cd('node_modules/@rimesime/aws-autocidi');
+  console.log(`This is autopipe!`);
+  shell.cd('node_modules/@rimesime/aws-autopipe');
   if (argv._.includes('install')) {
-    shell.exec(`./autocidi.sh install ${argv.profile} ${argv.repositoryName} ${argv.bucket}`);
+    shell.exec(`./autopipe.sh install ${argv.profile} ${argv.repositoryName} ${argv.bucket}`);
   } else if (argv._.includes('create')) {
-    shell.exec(`./autocidi.sh create ${argv.profile} ${argv.repositoryName} ${argv.branch}`);
+    shell.exec(`./autopipe.sh create ${argv.profile} ${argv.repositoryName} ${argv.branch}`);
   } else if (argv._.includes('delete')) {
-    shell.exec(`./autocidi.sh delete ${argv.profile} ${argv.repositoryName} ${argv.branch ? argv.branch : ''}`);
+    shell.exec(`./autopipe.sh delete ${argv.profile} ${argv.repositoryName} ${argv.branch ? argv.branch : ''}`);
   } else {
     yargs.showHelp();
   }

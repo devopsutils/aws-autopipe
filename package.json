@@ -1,12 +1,12 @@
 {
-  "name": "@rimesime/aws-autocidi",
-  "version": "0.0.5",
+  "name": "@rimesime/aws-autopipe",
+  "version": "0.0.1",
   "description": "Automatic CI/CD for AWS",
   "author": "Simon Schmitt",
   "license": "ISC",
-  "main": "autocidi.js",
+  "main": "autopipe.js",
   "bin": {
-    "autocidi": "autocidi.js"
+    "autopipe": "autopipe.js"
   },
   "dependencies": {
     "shelljs": "^0.8.3",
@@ -14,12 +14,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rimesime/aws-autocidi.git"
+    "url": "git+https://github.com/rimesime/aws-autopipe.git"
   },
   "bugs": {
-    "url": "https://github.com/rimesime/aws-autocidi/issues"
+    "url": "https://github.com/rimesime/aws-autopipe/issues"
   },
-  "homepage": "https://github.com/rimesime/aws-autocidi#readme",
+  "homepage": "https://github.com/rimesime/aws-autopipe#readme",
   "keywords": [
     "AWS",
     "CI/CD",
