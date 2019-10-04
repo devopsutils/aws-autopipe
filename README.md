@@ -1,42 +1,101 @@
 # WORK IN PROGRESS - DO NOT USE YET
 
-# Automatic CI/CD for AWS
+### autocidi - Automatic CI/CD for AWS
+Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/codepipeline/).
 
-Automatically create/update/delete AWS CodePipelines on CodeCommit branches.
+- Complete deployment infrastructure inside the application repository
+- Out-of-the-box default pipeline configuration
+- Stay flexible with custom pipelines
+- Let DevOps & developers work in the same domain
+- Leverage AWS CI/CD toolchain, save costs on the way
 
-# Setup Instructions
-1. Create a CodeCommit repository for your application and clone it, then run:
-    - ```npm init```
-    - ```npm install --save-dev @rimesime/aws-autocidi```
+### Prerequisites
+- [AWS CodeCommit](https://aws.amazon.com/codecommit/) project repository
+    - ```npm init``` was run
+    - ```buildspec.yml``` is configured (see [AWS CodeBuild](https://aws.amazon.com/codebuild/))
+- [AWS CLI](https://aws.amazon.com/cli/) installed and configured
+- Sufficient permissions in your AWS account :)
 
-1. Then prepare your build pipeline:
-    - Create your build definition for CodeBuild: ```<repo>/buildspec.yml```
-    - Create your autocidi configuration file: ```<repo>/autocidi.config.json```
+### Setup
+1. ```npm install --save-dev @rimesime/aws-autocidi```
 
-1. Deploy the pipeline management stack:
-    - ```autocidi install -b <bucket> -p <profile>```
-        - ```<bucket>``` is your S3 bucket for all artifacts
-        - ```<profile>``` is your AWS credentials profile (e.g. ```default```, see ```.aws/credentials``` in your home folder)
+1. Deploy the management stack for this repository:
+    - ```autocidi install -r <repository-name> -b <bucket> -p <profile>```
+        - ```<repository-name>``` is the name of your AWS CodeCommit repository
+        - ```<bucket>``` is your AWS S3 bucket for all artifacts (will be 
+          created if not existing)
+        - ```<profile>``` is your AWS credentials profile (e.g. 
+          ```default```, see ```.aws/credentials``` in your home folder)
     
-    This is what happens now: AWS will...
-    - _**create**_ a separate CodePipeline for every new branch
-    - _**update**_ this CodePipeline on a push to that branch using the configuration from within that branch
-    - _**delete**_ this CodePipeline on branch deletion
+That's it. From now on: _autocidi_ will...
+- _**create**_ a separate pipeline for every new branch
+- _**update**_ this pipeline on a push to that branch
+- _**delete**_ this pipeline on branch deletion
+
+The definition(s) of the pipeline(s) can be self-managed (i.e. custom) 
+by the project itself, or a default pipeline provided by _autocidi_ is 
+used. If you use (a) custom pipeline(s), you can work on the 
+pipeline definition in a branch, and that branch's pipeline will 
+automatically get updated upon a push to that branch with the new
+pipeline.
+
+Yes, that _**is**_ awesome - I know. You're welcome. ;)
+
+### More Commands
+To manually setup a pipeline for a branch that existed prior to the 
+install of _autocidi_ (e.g. the one you are working in right now), run:
+- ```autocidi create -b <branch-name> -r <repository-name> -p <profile>```
     
-    Yes, this is awesome - I know. You're welcome. ;)
+To manually tear down a pipeline, run:
+- ```autocidi delete -b <branch-name> -r <repository-name> -p <profile>```
+    - ```<branch-name>``` is the branch the pipeline shall be deployed for
+    
+To manually tear down the management stack for this repository, run:
+- ```autocidi delete -r <repository-name> -p <profile>```
 
-1. To manually setup a pipeline for a branch that existed prior to the install of autocidi (e.g. the one you are working in right now), run:
-    - ```autocidi create```
+### Pipeline Configuration
+#### The Default Pipeline
+If no custom pipelines are configured in your repository or if no entry 
+can be found in your repository configuration that matches the branch 
+name whos pipeline shall be created or updated, _autocidi_ will use 
+a default pipeline template.
 
-# Configuration file
-- Create a file called ```autocidi.config.json``` for a mapping of your custom templates to branches. 
+This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
 
-# How It Works
-Creates a AWS Cloudformation stack called ```pipeline-management-<repository-name>``` 
-which gets triggered upon every branch create/delete/push operation and will 
-then deploy/delete/update a Cloudformation stack called ```pipeline-branch-<branch-name>``` 
-using the custom branch template defined by you in your project (see section on config file) 
-or the default template provided by this lib. If the template changes (e.g. because you have 
-to change your build pipeline), the deployed pipeline gets updated upon branch push, since 
-the changed template resides in the same branch, hence, you can change the pipeline that got 
-already deployed for your branch by just pushing the changed template to that branch).
+#### Your Custom Pipelines
+Create a file called ```autocidi.config.json``` for a mapping of your 
+custom pipeline templates to branches, e.g.:
+```
+{
+  "pipelines": [
+    {
+      "branch": "master",
+      "pipeline": "pipelines/master.yaml"
+    },
+    {
+      "branch": "develop",
+      "pipeline": "pipelines/develop.yaml"
+    }
+  ]
+}
+```
+
+If you need to define a custom default pipeline, use an empty branch 
+name, i.e.: 
+```
+{
+  "pipelines": [
+    {
+      "branch": "",
+      "pipeline": "pipelines/default.yaml"
+    }
+  ]
+}
+```
+
+#### Which Pipeline Definition Gets Used
+- If a custom pipeline template for that branch name is found in 
+  your repository, that custom pipeline will be used.
+- Else if a default pipeline template is found in your repository, 
+  that default pipeline template is used.
+- Otherwise a default pipeline template provided by _autocidi_ is used.
