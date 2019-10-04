@@ -9,7 +9,7 @@ BranchName=$4
 
 # Common variables
 ManagementStackName="pipeline-management-$CodeCommitRepoName"
-PipelineStackName="pieline-branch-$BranchName"
+PipelineStackName="pipeline-branch-$BranchName"
 
 # Retrieve CodeCommit repository Arn
 CodeCommitRepoArn=$(aws codecommit get-repository \
@@ -69,8 +69,19 @@ case "$Mode" in
     # Create branch pipeline
     echo "Creating branch pipeline $PipelineStackName"
     echo 'Not implemented yet.'
-    # TODO implement it (call lambda)
-    # TODO add triggers
+
+    # Get Lambda of the management stack
+    LambdaArn=$(aws cloudformation describe-stacks \
+                       --stack-name "$ManagementStackName" \
+                       --query="Stacks[0].Outputs[?OutputKey=='LambdaArn'].OutputValue" \
+                       --output=text \
+                       --profile "$AWSCredentialsProfile"
+                     )
+    aws lambda invoke \
+               --function-name "$LambdaArn" \
+               --payload "{\"Records\":[{\"eventTriggerName\":\"NewBranch\",\"codecommit\":{\"references\":[{\"ref\":\"a/a/$BranchName\"}]}}]}" \
+               outfile tmp.txt \
+               --profile "$AWSCredentialsProfile"
     ;;
 
   delete-management)
@@ -91,7 +102,6 @@ case "$Mode" in
     aws cloudformation delete-stack \
                  --stack-name "$PipelineStackName"\
                  --profile "$AWSCredentialsProfile"
-    # TODO remove the triggers https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-notify-delete.html#how-to-notify-delete-cli
     ;;
 
   *)
