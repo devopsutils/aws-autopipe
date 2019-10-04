@@ -3,65 +3,84 @@ const yargs = require('yargs');
 const shell = require('shelljs');
 
 const argv = yargs
-  .usage('Usage: $0 <command> [options]')
-  .command('install', 'Install the management stack', yargs => {
+  .command('create', 'Create the management stack or a branch pipeline', yargs => {
     yargs
-      .usage('Usage: $0 install -r <Repository-Name> -b <Bucket-Name> -p <AWS-Credentials-Profile>')
-      .example('$0 install -r my-repo -b My-Company-Bucket-0815 -p default')
-      .alias('r', 'repositoryName')
-      .nargs('r', 1)
-      .describe('r', 'Name of the CodeCommit repository')
-      .alias('b', 'bucket')
-      .nargs('b', 1)
-      .describe('b', 'S3 Bucket for all artifacts')
-      .alias('p', 'profile')
-      .nargs('p', 1)
-      .describe('p', 'AWS credentials profile, e.g. \'default\'')
-      .demandOption(['r', 'b', 'p']);
+      .option('s', {
+        alias: 'bucket',
+        type: 'string',
+        nargs: 1,
+        describe: 'S3 Bucket for all artifacts'
+      })
+      .option('b', {
+        alias: 'branch',
+        type: 'string',
+        nargs: 1,
+        describe: 'The branch where the pipeline shall be created or updated.'
+      })
+      .conflicts('s', 'b')
+      .check(function (argv) {
+        if(!(argv.bucket || argv.branch)) {
+          throw('One of the arguments has to be set: b, s');
+        }
+        return true;
+      });
   })
-  .command('create', 'Create a branch pipeline', yargs => {
+  .command('delete', 'Delete the management stack or a branch pipeline', yargs => {
     yargs
-      .usage('Usage: $0 create -r <Repository-Name> -b <Branch-Name> -p <AWS-Credentials-Profile>')
-      .example('$0 create -r my-repo -b My-Branch-0815 -p default')
-      .alias('r', 'repositoryName')
-      .nargs('r', 1)
-      .describe('r', 'Name of the CodeCommit repository')
-      .alias('b', 'branch')
-      .nargs('b', 1)
-      .describe('b', 'The branch for which a pipeline shall be created')
-      .alias('p', 'profile')
-      .nargs('p', 1)
-      .describe('p', 'AWS credentials profile, e.g. \'default\'')
-      .demandOption(['r', 'b', 'p']);
+      .option('b', {
+        alias: 'branch',
+        type: 'string',
+        nargs: 1,
+        describe: 'The branch where the pipeline shall be deleted.'
+      })
   })
-  .command('delete', 'Delete a branch pipeline or the management stack', yargs => {
-    yargs
-      .usage('Usage: $0 delete -r <Repository-Name> [-b <Branch-Name>] -p <AWS-Credentials-Profile>')
-      .example('$0 delete -r my-repo -b My-Branch-0815 -p default')
-      .alias('r', 'repositoryName')
-      .nargs('r', 1)
-      .describe('r', 'Name of the CodeCommit repository')
-      .alias('b', 'branch')
-      .nargs('b', 1)
-      .describe('b', 'The branch for which a pipeline shall be deleted')
-      .alias('p', 'profile')
-      .nargs('p', 1)
-      .describe('p', 'AWS credentials profile, e.g. \'default\'')
-      .demandOption(['r', 'p']);
+  .option('r', {
+    global: true,
+    alias: 'repositoryName',
+    type: 'string',
+    demand: 'Please specify the name of the repository.',
+    nargs: 1,
+    describe: 'The name of the repository.',
+    demandOption: true // TODO
   })
+  .option('p', {
+    global: true,
+    alias: 'profile',
+    type: 'string',
+    demand: 'Please specify the AWS credentials profile',
+    nargs: 1,
+    default: 'default',
+    describe: 'The name of the AWS credentials profile that shall be used. Refers to your .aws/credentials file.'
+  })
+  .demandCommand(1, 1)
   .help('h')
   .alias('h', 'help')
   .argv;
 
 async function main() {
   console.log(`This is autopipe!`);
+
   shell.cd('node_modules/@rimesime/aws-autopipe');
-  if (argv._.includes('install')) {
-    shell.exec(`./autopipe.sh install ${argv.profile} ${argv.repositoryName} ${argv.bucket}`);
-  } else if (argv._.includes('create')) {
-    shell.exec(`./autopipe.sh create ${argv.profile} ${argv.repositoryName} ${argv.branch}`);
+  if (argv._.includes('create')) {
+    if (argv.bucket) {
+      const cmd = `./autopipe.sh create-management ${argv.profile} ${argv.repositoryName} ${argv.bucket}`;
+      console.log(cmd);
+      shell.exec(cmd);
+    } else {
+      const cmd = `./autopipe.sh create-branch ${argv.profile} ${argv.repositoryName} ${argv.branch}`;
+      console.log(cmd);
+      shell.exec(cmd);
+    }
   } else if (argv._.includes('delete')) {
-    shell.exec(`./autopipe.sh delete ${argv.profile} ${argv.repositoryName} ${argv.branch ? argv.branch : ''}`);
+    if (argv.branch) {
+      const cmd = `./autopipe.sh delete-branch ${argv.profile} ${argv.repositoryName} ${argv.branch}`;
+      console.log(cmd);
+      shell.exec(cmd);
+    } else {
+      const cmd = `./autopipe.sh delete-management ${argv.profile} ${argv.repositoryName}`;
+      console.log(cmd);
+      shell.exec(cmd);
+    }
   } else {
     yargs.showHelp();
   }

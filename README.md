@@ -20,12 +20,10 @@ Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/cod
 1. ```npm install --save-dev @rimesime/aws-autopipe```
 
 1. Deploy the management stack for this repository:
-    - ```autopipe install -r <repository-name> -b <bucket> -p <profile>```
+    - ```autopipe create -r <repository-name> -s <bucket-name> [-p <profile>]```
         - ```<repository-name>``` is the name of your AWS CodeCommit repository
-        - ```<bucket>``` is your AWS S3 bucket for all artifacts (will be 
+        - ```<bucket-name>``` is your AWS S3 bucket for all artifacts (will be 
           created if not existing)
-        - ```<profile>``` is your AWS credentials profile (e.g. 
-          ```default```, see ```.aws/credentials``` in your home folder)
     
 That's it. From now on: _autopipe_ will...
 - _**create**_ a separate pipeline for every new branch
@@ -44,14 +42,14 @@ Yes, that _**is**_ awesome - I know. You're welcome. ;)
 ### More Commands
 To manually setup a pipeline for a branch that existed prior to the 
 install of _autopipe_ (e.g. the one you are working in right now), run:
-- ```autopipe create -b <branch-name> -r <repository-name> -p <profile>```
+- ```autopipe create -b <branch-name> -r <repository-name> [-p <profile>]```
     
 To manually tear down a pipeline, run:
-- ```autopipe delete -b <branch-name> -r <repository-name> -p <profile>```
+- ```autopipe delete -b <branch-name> -r <repository-name> [-p <profile>]```
     - ```<branch-name>``` is the branch the pipeline shall be deployed for
     
 To manually tear down the management stack for this repository, run:
-- ```autopipe delete -r <repository-name> -p <profile>```
+- ```autopipe delete -r <repository-name> [-p <profile>]```
 
 ### Pipeline Configuration
 #### The Default Pipeline
@@ -64,7 +62,10 @@ This default pipeline template can be found here: [management/lambda/templates/p
 
 #### Your Custom Pipelines
 Create a file called ```autopipe.config.json``` for a mapping of your 
-custom pipeline templates to branches, e.g.:
+custom pipeline templates to branches.
+<details>
+  <summary>Example:</summary>
+  
 ```
 {
   "pipelines": [
@@ -79,9 +80,13 @@ custom pipeline templates to branches, e.g.:
   ]
 }
 ```
+</details>
 
 If you need to define a custom default pipeline, use an empty branch 
-name, i.e.: 
+name. 
+<details>
+  <summary>Example:</summary>
+
 ```
 {
   "pipelines": [
@@ -92,6 +97,7 @@ name, i.e.:
   ]
 }
 ```
+</details>
 
 #### Which Pipeline Definition Gets Used
 - If a custom pipeline template for that branch name is found in 

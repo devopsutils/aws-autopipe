@@ -20,7 +20,10 @@ CodeCommitRepoArn=$(aws codecommit get-repository \
                       )
 
 case "$Mode" in
-  install)
+  create-management)
+    # No branch specified, create management stack
+    echo "Creating management stack $ManagementStackName"
+
     # Create company-wide S3 bucket for artifacts (doesn't do anything if already existing)
     aws s3api create-bucket \
               --bucket "$ArtifactBucketName" \
@@ -62,34 +65,36 @@ case "$Mode" in
                    --profile "$AWSCredentialsProfile"
     ;;
 
-  create)
-    # TODO create it
+  create-branch)
+    # Create branch pipeline
+    echo "Creating branch pipeline $PipelineStackName"
+    echo 'Not implemented yet.'
+    # TODO implement it (call lambda)
     # TODO add triggers
     ;;
 
-  delete)
-    if test -z "$BranchName"
-    then
-      # No branch specified, tear down management stack
-      echo "Deleting management stack $ManagementStackName"
-      aws cloudformation delete-stack \
-                         --stack-name "$ManagementStackName"\
-                         --profile "$AWSCredentialsProfile"
-      aws codecommit put-repository-triggers \
-                     --repository-name "$CodeCommitRepoName" \
-                     --triggers [] \
-                     --profile "$AWSCredentialsProfile"
-    else
-      # Branch specified, tear down that branch pipeline
-      echo "Deleting branch pipeline $PipelineStackName"
-      aws cloudformation delete-stack \
-                   --stack-name "$PipelineStackName"\
+  delete-management)
+    # Tear down management stack
+    echo "Deleting management stack $ManagementStackName"
+    aws cloudformation delete-stack \
+                       --stack-name "$ManagementStackName"\
+                       --profile "$AWSCredentialsProfile"
+    aws codecommit put-repository-triggers \
+                   --repository-name "$CodeCommitRepoName" \
+                   --triggers [] \
                    --profile "$AWSCredentialsProfile"
-      # TODO remove the triggers https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-notify-delete.html#how-to-notify-delete-cli
-    fi
+    ;;
+
+  delete-branch)
+    # Tear down that branch pipeline
+    echo "Deleting branch pipeline $PipelineStackName"
+    aws cloudformation delete-stack \
+                 --stack-name "$PipelineStackName"\
+                 --profile "$AWSCredentialsProfile"
+    # TODO remove the triggers https://docs.aws.amazon.com/codecommit/latest/userguide/how-to-notify-delete.html#how-to-notify-delete-cli
     ;;
 
   *)
-    echo $"Usage: $0 {install|create|delete}"
+    echo $"Usage: $0 {create-management|create-branch|delete-management|delete-branch}"
     exit 1
 esac
