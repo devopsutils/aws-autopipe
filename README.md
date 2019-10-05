@@ -1,6 +1,6 @@
 # WORK IN PROGRESS - DO NOT USE YET
 
-![Diagram](.graphics/autopipe_logo.svg)
+![Diagram](graphics/autopipe-logo.svg)
 
 ### autopipe - Automatic CI/CD for AWS
 Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/codepipeline/).
@@ -10,6 +10,17 @@ Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/cod
 - Stay flexible with custom pipelines
 - Let DevOps & developers work in the same domain
 - Leverage AWS CI/CD toolchain, save costs on the way
+
+### Workflow
+
+_autopipe_...
+- ... maintains pipelines per branch
+- ... updates pipelines on configuration changes automatically
+- ... runs pipeline after each push
+
+Example workflow:
+
+![Diagram](graphics/autopipe-gitflow.svg)
 
 ### Prerequisites
 - [AWS CodeCommit](https://aws.amazon.com/codecommit/) project repository
@@ -62,7 +73,7 @@ a default pipeline template.
 
 This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
 
-![Diagram](.graphics/pipeline-default.svg)
+![Diagram](graphics/autopipe-pipeline-default.svg)
 
 #### Your Custom Pipelines
 Create a file called ```autopipe.config.json``` for a mapping of your 
