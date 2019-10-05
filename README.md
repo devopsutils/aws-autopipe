@@ -27,8 +27,6 @@ pipeline.
 
 Yes, that _**is**_ awesome - I know. You're welcome. ;)
 
-Example workflow:
-
 ![Diagram](graphics/autopipe-gitflow.svg)
 
 ### Prerequisites
@@ -46,6 +44,10 @@ Example workflow:
         - ```<repository-name>``` is the name of your AWS CodeCommit repository
         - ```<bucket-name>``` is your AWS S3 bucket for all artifacts (will be 
           created if not existing)
+
+You just deployed your management stack for this repository:
+
+![Diagram](graphics/autopipe-management-stack.svg)
 
 ### More Commands
 If you need to setup a branch pipeline for a branch that existed before 
@@ -66,9 +68,9 @@ can be found in your repository configuration that matches the branch
 name whos pipeline shall be created or updated, _autopipe_ will use 
 a default pipeline template.
 
-This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
-
 ![Diagram](graphics/autopipe-pipeline-default.svg)
+
+This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
 
 #### Your Custom Pipelines
 Create a file called ```autopipe.config.json``` for a mapping of your 
