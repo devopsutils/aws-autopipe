@@ -117,3 +117,7 @@ custom pipeline templates to branches.
 1. Else if a default pipeline template is found in ```autopipe.config.json```, 
    that custom default pipeline template is used.
 1. Otherwise a default pipeline template provided by _autopipe_ is used.
+
+### Stack Overview
+
+![Diagram](graphics/autopipe-stack-overview.svg)
