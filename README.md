@@ -1,6 +1,6 @@
 # WORK IN PROGRESS - DO NOT USE YET
 
-![Diagram](autopipe_logo.svg)
+![Diagram](.graphics/autopipe_logo.svg)
 
 ### autopipe - Automatic CI/CD for AWS
 Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/codepipeline/).
