@@ -11,12 +11,21 @@ Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/cod
 - Let DevOps & developers work in the same domain
 - Leverage AWS CI/CD toolchain, save costs on the way
 
-### Workflow
+_autopipe_ ...
+- ... _**creates**_ a pipeline for every new branch
+- ... _**updates**_ that pipeline on every branch push if necessary
+- ... _**executes**_ that pipeline on every branch push
+- ... _**deletes**_ that pipeline on branch deletion
+- ... _**removes**_ all deployed application stacks on branch deletion
 
-_autopipe_...
-- ... maintains pipelines per branch
-- ... updates pipelines on configuration changes automatically
-- ... runs pipeline after each push
+The definition(s) of the pipeline(s) can be self-managed (i.e. custom) 
+by the project itself, or a default pipeline provided by _autopipe_ is 
+used. If you use (a) custom pipeline(s), you can work on the 
+pipeline definition in a branch, and that branch's pipeline will 
+automatically get updated upon a push to that branch with the new
+pipeline.
+
+Yes, that _**is**_ awesome - I know. You're welcome. ;)
 
 Example workflow:
 
@@ -37,29 +46,15 @@ Example workflow:
         - ```<repository-name>``` is the name of your AWS CodeCommit repository
         - ```<bucket-name>``` is your AWS S3 bucket for all artifacts (will be 
           created if not existing)
-    
-That's it. From now on: _autopipe_ will...
-- _**create**_ a separate pipeline for every new branch
-- _**update**_ this pipeline on a push to that branch
-- _**delete**_ this pipeline on branch deletion
-
-The definition(s) of the pipeline(s) can be self-managed (i.e. custom) 
-by the project itself, or a default pipeline provided by _autopipe_ is 
-used. If you use (a) custom pipeline(s), you can work on the 
-pipeline definition in a branch, and that branch's pipeline will 
-automatically get updated upon a push to that branch with the new
-pipeline.
-
-Yes, that _**is**_ awesome - I know. You're welcome. ;)
 
 ### More Commands
 If you need to setup a branch pipeline for a branch that existed before 
 installing _autopipe_ and you do not want to push to that branch now (this 
 would automatically setup a branch pipeline), run:
-- ```autopipe create -b <branch-name> -r <repository-name> [-p <profile>]```
+- ```autopipe create -r <repository-name> -b <branch-name> [-p <profile>]```
     
 To manually tear down a pipeline (gets redeployed on branch push), run:
-- ```autopipe delete -b <branch-name> -r <repository-name> [-p <profile>]```
+- ```autopipe delete -r <repository-name> -b <branch-name> [-p <profile>]```
     
 To manually tear down the management stack for this repository, run:
 - ```autopipe delete -r <repository-name> [-p <profile>]```
