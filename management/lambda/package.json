@@ -8,6 +8,7 @@
   },
   "author": "Simon Schmitt",
   "dependencies": {
-    "cfn": "^1.8.1"
+    "cfn": "^1.8.1",
+    "fs": "0.0.1-security"
   }
 }

@@ -1,16 +1,51 @@
 'use strict';
 
+const fs = require("fs");
 const cfn = require('cfn');
+const AWS = require('aws-sdk');
+const codeCommit = new AWS.CodeCommit();
+
+const CodeCommitRepoName = process.env.CodeCommitRepoName;
+
+async function getPipelineConfiguration(commitSpecifier) {
+  return new Promise((resolve, reject) => {
+    const params = {
+      filePath: 'pipeline-default.yaml', //TODO 'autopipe.config.json',
+      repositoryName: CodeCommitRepoName,
+      commitSpecifier
+    };
+    codeCommit.getFile(params, function (err, data) {
+      if (err) {
+        console.log(err, err.stack);
+        reject(err);
+      } else {
+        console.log(data);
+
+        const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
+        console.log(templatePath);
+
+        fs.writeFileSync(templatePath, data.fileContent, 'base64', function(err) {
+          console.log(err);
+          reject(err);
+        });
+
+        resolve(templatePath);
+      }
+    });
+  });
+}
 
 async function createOrUpdateBranch(record) {
   try {
     console.log('Creating or updating branch', record);
     console.log('CodeCommit Info:', JSON.stringify(record.codecommit.references));
-    const stackName = 'pipeline-branch-' + record.codecommit.references[0].ref.split('/')[2];
+    const commitSpecifier = record.codecommit.references[0].ref;
+    const stackName = 'pipeline-branch-' + commitSpecifier.split('/')[2];
+    const templatePath = await getPipelineConfiguration(commitSpecifier);
     console.log('Stackname:', stackName);
     await cfn({
       name: stackName,
-      template: 'templates/pipeline-default.yaml',
+      template: templatePath,
       cfParams: {},
       /*
       tags: {

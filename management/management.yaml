@@ -8,6 +8,10 @@ Parameters:
     Description: The ARN of the S3 bucket used for all deployment artifacts
     Type: String
 
+  CodeCommitRepoName:
+    Description: The name of the CodeCommit repository
+    Type: String
+
   CodeCommitRepoArn:
     Description: The ARN of the CodeCommit repository
     Type: String
@@ -41,6 +45,7 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Environment:
         Variables:
+          CodeCommitRepoName: !Ref CodeCommitRepoName
           ArtifactBucketName: !Ref ArtifactBucketName
 
   LambdaRole:
@@ -76,3 +81,7 @@ Resources:
                 Action:
                   - cloudformation:*
                 Resource: "*"
+              - Effect: Allow
+                Action:
+                  - codecommit:GetFile
+                Resource: !Ref CodeCommitRepoArn

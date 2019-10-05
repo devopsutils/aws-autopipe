@@ -45,6 +45,7 @@ case "$Mode" in
                        --stack-name "$ManagementStackName" \
                        --parameter-overrides \
                          ArtifactBucketName="$ArtifactBucketName" \
+                         CodeCommitRepoName="$CodeCommitRepoName" \
                          CodeCommitRepoArn="$CodeCommitRepoArn" \
                        --capabilities CAPABILITY_NAMED_IAM \
                        --profile "$AWSCredentialsProfile"
@@ -80,9 +81,10 @@ case "$Mode" in
 
     aws lambda invoke \
                --function-name "$LambdaArn" \
-               --payload "{\"Records\":[{\"eventTriggerName\":\"NewBranch\",\"codecommit\":{\"references\":[{\"ref\":\"a/a/$BranchName\"}]}}]}" \
-               outfile tmp.txt \
+               --payload "{\"Records\":[{\"eventTriggerName\":\"NewBranch\",\"codecommit\":{\"references\":[{\"ref\":\"refs/heads/$BranchName\"}]}}]}" \
+               lambda-response-tmp.txt \
                --profile "$AWSCredentialsProfile"
+    rm lambda-response-tmp.txt
     ;;
 
   delete-management)
