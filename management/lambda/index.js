@@ -7,10 +7,10 @@ const codeCommit = new AWS.CodeCommit();
 
 const CodeCommitRepoName = process.env.CodeCommitRepoName;
 
-async function getPipelineConfiguration(commitSpecifier) {
+async function getFileBlobFromRepo(commitSpecifier, filePath) {
   return new Promise((resolve, reject) => {
     const params = {
-      filePath: 'pipeline-default.yaml', //TODO 'autopipe.config.json',
+      filePath,
       repositoryName: CodeCommitRepoName,
       commitSpecifier
     };
@@ -20,18 +20,27 @@ async function getPipelineConfiguration(commitSpecifier) {
         reject(err);
       } else {
         console.log(data);
-
-        const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
-        console.log(templatePath);
-
-        fs.writeFileSync(templatePath, data.fileContent, 'base64', function(err) {
-          console.log(err);
-          reject(err);
-        });
-
-        resolve(templatePath);
+        resolve(data.fileContent);
       }
     });
+  });
+}
+
+async function getPipelineConfiguration(commitSpecifier) {
+  return new Promise(async (resolve, reject) => {
+    const configFileBlob = await getFileBlobFromRepo(commitSpecifier, 'autopipe.config.json');
+    const pipelines = JSON.parse(configFileBlob).pipelines;
+    console.log(pipelines);
+    console.log(JSON.stringify(pipelines));
+    const pipelineFilePath = pipelines.filter((p) => p.branch === commitSpecifier.split('/')[2])[0].pipeline;
+    const templateFileBlob = await getFileBlobFromRepo(commitSpecifier, pipelineFilePath);
+    const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
+    console.log(templatePath);
+    fs.writeFileSync(templatePath, templateFileBlob, 'base64', function(err) {
+      console.log(err);
+      reject(err);
+    });
+    resolve(templatePath);
   });
 }
 
