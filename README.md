@@ -62,6 +62,8 @@ a default pipeline template.
 
 This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
 
+![Diagram](.graphics/pipeline-default.svg)
+
 #### Your Custom Pipelines
 Create a file called ```autopipe.config.json``` for a mapping of your 
 custom pipeline templates to branches.
