@@ -42,13 +42,13 @@ pipeline.
 Yes, that _**is**_ awesome - I know. You're welcome. ;)
 
 ### More Commands
-To manually setup a pipeline for a branch that existed prior to the 
-install of _autopipe_ (e.g. the one you are working in right now), run:
+If you need to setup a branch pipeline for a branch that existed before 
+installing _autopipe_ and you do not want to push to that branch now (this 
+would automatically setup a branch pipeline), run:
 - ```autopipe create -b <branch-name> -r <repository-name> [-p <profile>]```
     
-To manually tear down a pipeline, run:
+To manually tear down a pipeline (gets redeployed on branch push), run:
 - ```autopipe delete -b <branch-name> -r <repository-name> [-p <profile>]```
-    - ```<branch-name>``` is the branch the pipeline shall be deployed for
     
 To manually tear down the management stack for this repository, run:
 - ```autopipe delete -r <repository-name> [-p <profile>]```
@@ -73,37 +73,37 @@ custom pipeline templates to branches.
   "pipelines": [
     {
       "branch": "master",
-      "pipeline": "pipelines/master.yaml"
+      "pipeline": "pipelines/master.yaml",
+      "description": "Custom pipeline for master branch"
     },
     {
       "branch": "develop",
-      "pipeline": "pipelines/develop.yaml"
-    }
-  ]
-}
-```
-</details>
-
-If you need to define a custom default pipeline, use an empty branch 
-name. 
-<details>
-  <summary>Example:</summary>
-
-```
-{
-  "pipelines": [
+      "pipeline": "pipelines/develop.yaml",
+      "description": "Custom pipeline for develop branch"
+    },
     {
       "branch": "",
-      "pipeline": "pipelines/default.yaml"
+      "pipeline": "pipelines/default.yaml",
+      "description": "Custom default pipeline for all (other) branches"
+    },
+    {
+      "branch": "no-pipe-branch",
+      "pipeline": "",
+      "description": "Do not deploy a pipeline for this branch"
     }
   ]
 }
 ```
 </details>
 
-#### Which Pipeline Definition Gets Used
-- If a custom pipeline template for that branch name is found in 
-  your repository, that custom pipeline will be used.
-- Else if a default pipeline template is found in your repository, 
-  that default pipeline template is used.
-- Otherwise a default pipeline template provided by _autopipe_ is used.
+##### Remarks:
+- If you need to define a custom default pipeline, use an empty branch name. 
+- If you need to exclude a branch from _autopipe_, use an empty pipeline attribute.
+
+##### Which Pipeline Definition Gets Used
+1. If an entry in ```autopipe.config.json``` for that branch name is found:
+    1. If the pipeline attribute is set to a template, that custom pipeline will be used.
+    1. If the pipeline attribute is empty, no pipeline is deployed.
+1. Else if a default pipeline template is found in ```autopipe.config.json```, 
+   that custom default pipeline template is used.
+1. Otherwise a default pipeline template provided by _autopipe_ is used.
