@@ -16,44 +16,77 @@ async function getFileBlobFromRepo(commitSpecifier, filePath) {
     };
     codeCommit.getFile(params, function (err, data) {
       if (err) {
-        console.log(err, err.stack);
         reject(err);
       } else {
-        console.log(data);
         resolve(data.fileContent);
       }
     });
   });
 }
 
-async function getPipelineConfiguration(commitSpecifier) {
+async function getPipelineConfiguration(commitSpecifier, record) {
   return new Promise(async (resolve, reject) => {
+    // Retrieve the configuration from inside of that branch
     const configFileBlob = await getFileBlobFromRepo(commitSpecifier, 'autopipe.config.json');
     const pipelines = JSON.parse(configFileBlob).pipelines;
-    console.log(pipelines);
-    console.log(JSON.stringify(pipelines));
-    const pipelineFilePath = pipelines.filter((p) => p.branch === commitSpecifier.split('/')[2])[0].pipeline;
-    const templateFileBlob = await getFileBlobFromRepo(commitSpecifier, pipelineFilePath);
-    const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
-    console.log(templatePath);
-    fs.writeFileSync(templatePath, templateFileBlob, 'base64', function(err) {
-      console.log(err);
-      reject(err);
-    });
-    resolve(templatePath);
+
+    // Find what we want, order matters here
+    const branchMatches = pipelines
+      .filter((p) => p.branch === commitSpecifier.split('/')[2])
+      .concat(pipelines.filter((p) => p.branch === ''));
+
+    // Is there an entry that matches the criteria?
+    if (branchMatches[0]) {
+      // Found a definition
+      const pipelineFilePath = branchMatches[0].pipeline;
+
+      // Is a template file specified? Or is it empty?
+      if (pipelineFilePath === '') {
+        // Branch is im- or explicitly mentioned but empty template file, do not deploy anything
+        console.log('No template defined. Deploying nothing.');
+
+        if (branchMatches[0].branch !== '') {
+          // Branch is explicitly defined, but template is empty, delete stack if present
+          console.log('Branch explicitly configured to have no pipeline stack, deleting pipeline stack if present now.');
+          await deleteBranch(record);
+        }
+        resolve(null);
+        return;
+      }
+
+      // Retrieve that template file
+      const templateFileBlob = await getFileBlobFromRepo(commitSpecifier, pipelineFilePath);
+
+      // Save it locally in this lambda
+      const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
+      fs.writeFileSync(templatePath, templateFileBlob, 'base64', function (err) {
+        console.log(err);
+        reject(err);
+      });
+
+      resolve(templatePath);
+      return;
+    }
   });
 }
 
 async function createOrUpdateBranch(record) {
   try {
-    console.log('Creating or updating branch', record);
-    console.log('CodeCommit Info:', JSON.stringify(record.codecommit.references));
+    console.log('Creating or updating branch, CodeCommit Info:', JSON.stringify(record));
+
+    // Extract the commit specifier from this record
     const commitSpecifier = record.codecommit.references[0].ref;
-    const stackName = 'pipeline-branch-' + commitSpecifier.split('/')[2];
-    const templatePath = await getPipelineConfiguration(commitSpecifier);
-    console.log('Stackname:', stackName);
+
+    // Is there a template definition for this branch?
+    const templatePath = await getPipelineConfiguration(commitSpecifier, record);
+    if (!templatePath) {
+      // No :(
+      return;
+    }
+
+    // Deploy template
     await cfn({
-      name: stackName,
+      name: 'pipeline-branch-' + commitSpecifier.split('/')[2],
       template: templatePath,
       cfParams: {},
       /*
@@ -75,10 +108,9 @@ async function createOrUpdateBranch(record) {
 
 async function deleteBranch(record) {
   try {
-    console.log('Deleting a branch', record);
-    console.log('CodeCommit Info:', JSON.stringify(record.codecommit.references));
+    console.log('Deleting a branch, CodeCommit Info:', JSON.stringify(record));
     const stackName = 'pipeline-branch-' + record.codecommit.references[0].ref.split('/')[2];
-    console.log('Stackname:', stackName);
+    console.log('Deleting Stack now:', stackName);
     await cfn.delete(stackName);
   } catch (error) {
     console.error('Got error: ', error);
@@ -86,7 +118,6 @@ async function deleteBranch(record) {
 }
 
 exports.handler = async (event) => {
-  console.log(event);
   await Promise.all(
     [
       ...(event.Records.filter((record) => record.eventTriggerName === "NewBranch").map(createOrUpdateBranch)),
