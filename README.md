@@ -30,11 +30,14 @@ Yes, that _**is**_ awesome - I know. You're welcome. ;)
 ![Diagram](graphics/autopipe-gitflow.svg)
 
 ### Prerequisites
+Must:
 - [AWS CodeCommit](https://aws.amazon.com/codecommit/) project repository
     - ```npm init``` was run
-    - ```buildspec.yml``` is configured (see [AWS CodeBuild](https://aws.amazon.com/codebuild/))
 - [AWS CLI](https://aws.amazon.com/cli/) installed and configured
 - Sufficient permissions in your AWS account :)
+
+Optional (but probably really useful):
+- ```buildspec.yml``` is configured (see [AWS CodeBuild](https://aws.amazon.com/codebuild/))
 
 ### Setup
 1. ```npm install --save-dev @rimesime/aws-autopipe```
@@ -45,10 +48,12 @@ Yes, that _**is**_ awesome - I know. You're welcome. ;)
         - ```<bucket-name>``` is your AWS S3 bucket for all artifacts (will be 
           created if not existing)
 
-You just deployed your management stack for this repository:
+    You just deployed your management stack for this repository:
+    ![Diagram](graphics/autopipe-management-stack.svg)
 
-![Diagram](graphics/autopipe-management-stack.svg)
-
+1. Setup your custom pipeline definitions, see section 
+   _Your Custom Pipelines Definitions_.
+   
 ### More Commands
 If you need to setup a branch pipeline for a branch that existed before 
 installing _autopipe_ and you do not want to push to that branch now (this 
@@ -61,18 +66,7 @@ To manually tear down a pipeline (gets redeployed on branch push), run:
 To manually tear down the management stack for this repository, run:
 - ```autopipe delete -r <repository-name> [-p <profile>]```
 
-### Pipeline Configuration
-#### The Default Pipeline
-If no custom pipelines are configured in your repository or if no entry 
-can be found in your repository configuration that matches the branch 
-name whos pipeline shall be created or updated, _autopipe_ will use 
-a default pipeline template.
-
-![Diagram](graphics/autopipe-pipeline-default.svg)
-
-This default pipeline template can be found here: [management/lambda/templates/pipeline-default.yaml](management/lambda/templates/pipeline-default.yaml)
-
-#### Your Custom Pipelines
+### Your Custom Pipeline Definition(s)
 Create a file called ```autopipe.config.json``` for a mapping of your 
 custom pipeline templates to branches.
 <details>
@@ -114,10 +108,9 @@ custom pipeline templates to branches.
 1. If an entry in ```autopipe.config.json``` for that branch name is found:
     1. If the pipeline attribute is set to a template, that custom pipeline will be used.
     1. If the pipeline attribute is empty, no pipeline is deployed.
-1. Else if a default pipeline template is found in ```autopipe.config.json```, 
+1. Else if a custom default pipeline template is found in ```autopipe.config.json```, 
    that custom default pipeline template is used.
-1. Otherwise a default pipeline template provided by _autopipe_ is used.
+1. Otherwise nothing happens.
 
-### Stack Overview
-
-![Diagram](graphics/autopipe-stack-overview.svg)
+_Note_, if there was a custom pipeline template defined for a branch and 
+that definition changed to **no** custom pipeline, the old pipeline gets destroyed.
