@@ -5,8 +5,8 @@
 ### autopipe - Automatic CI/CD for AWS
 Automatically manage branch-level [AWS CodePipelines](https://aws.amazon.com/codepipeline/).
 
-- Complete deployment infrastructure inside the application repository
-- Out-of-the-box default pipeline configuration
+- Maintain deployment infrastructure inside the application repository
+- Full automatic branch handling
 - Stay flexible with custom pipelines
 - Let DevOps & developers work in the same domain
 - Leverage AWS CI/CD toolchain, save costs on the way
@@ -18,12 +18,10 @@ _autopipe_ ...
 - ... _**deletes**_ that pipeline on branch deletion
 - ... _**removes**_ all deployed application stacks on branch deletion
 
-The definition(s) of the pipeline(s) can be self-managed (i.e. custom) 
-by the project itself, or a default pipeline provided by _autopipe_ is 
-used. If you use (a) custom pipeline(s), you can work on the 
-pipeline definition in a branch, and that branch's pipeline will 
-automatically get updated upon a push to that branch with the new
-pipeline.
+The definition(s) of the pipeline(s) must be self-managed (i.e. custom) 
+by the project itself. You can work on the pipeline definition in a 
+branch, and that branch's pipeline will automatically get updated upon 
+a push to that branch with the new pipeline.
 
 Yes, that _**is**_ awesome - I know. You're welcome. ;)
 
