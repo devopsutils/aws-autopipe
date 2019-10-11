@@ -38,7 +38,7 @@ case "$Mode" in
                        --template-file management/management.yaml \
                        --output-template-file management/management-output.yaml \
                        --s3-bucket "$ArtifactBucketName" \
-                       --s3-prefix "$CodeCommitRepoName" \
+                       --s3-prefix "$ManagementStackName" \
                        --profile "$AWSCredentialsProfile"
     aws cloudformation deploy \
                        --template-file management/management-output.yaml \
