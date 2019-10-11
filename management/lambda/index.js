@@ -39,6 +39,8 @@ async function getPipelineConfiguration(commitSpecifier, record) {
     if (branchMatches[0]) {
       // Found a definition
       const pipelineFilePath = branchMatches[0].pipeline;
+      const cfParams = branchMatches[0].parameters || {};
+      const tags = branchMatches[0].tags || {};
 
       // Is a template file specified? Or is it empty?
       if (pipelineFilePath === '') {
@@ -50,7 +52,7 @@ async function getPipelineConfiguration(commitSpecifier, record) {
           console.log('Branch explicitly configured to have no pipeline stack, deleting pipeline stack if present now.');
           await deleteBranch(record);
         }
-        resolve(null);
+        resolve({ template: null, cfParams: null, tags: null });
         return;
       }
 
@@ -58,13 +60,13 @@ async function getPipelineConfiguration(commitSpecifier, record) {
       const templateFileBlob = await getFileBlobFromRepo(commitSpecifier, pipelineFilePath);
 
       // Save it locally in this lambda
-      const templatePath = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
-      fs.writeFileSync(templatePath, templateFileBlob, 'base64', function (err) {
+      const template = `/tmp/template-${commitSpecifier.split('/').join('-')}.yaml`;
+      fs.writeFileSync(template, templateFileBlob, 'base64', function (err) {
         console.log(err);
         reject(err);
       });
 
-      resolve(templatePath);
+      resolve({ template, cfParams, tags });
       return;
     }
   });
@@ -78,8 +80,8 @@ async function createOrUpdateBranch(record) {
     const commitSpecifier = record.codecommit.references[0].ref;
 
     // Is there a template definition for this branch?
-    const templatePath = await getPipelineConfiguration(commitSpecifier, record);
-    if (!templatePath) {
+    const { template, cfParams, tags } = await getPipelineConfiguration(commitSpecifier, record);
+    if (!template) {
       // No :(
       return;
     }
@@ -87,14 +89,9 @@ async function createOrUpdateBranch(record) {
     // Deploy template
     await cfn({
       name: 'pipeline-branch-' + commitSpecifier.split('/')[2],
-      template: templatePath,
-      cfParams: {},
-      /*
-      tags: {
-        app: 'my app',
-        department: 'accounting',
-      },
-       */
+      template,
+      cfParams,
+      tags,
       awsConfig: {
         region: 'us-east-1', // TODO
       },
