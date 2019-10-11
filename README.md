@@ -76,17 +76,29 @@ custom pipeline templates to branches.
     {
       "branch": "master",
       "pipeline": "pipelines/master.yaml",
-      "description": "Custom pipeline for master branch"
+      "description": "Custom pipeline for master branch without parameters and tags"
     },
     {
       "branch": "develop",
       "pipeline": "pipelines/develop.yaml",
-      "description": "Custom pipeline for develop branch"
+      "description": "Custom pipeline for develop branch",
+      "parameters": {
+        "TheAnswer": "42"
+      },
+      "tags": {
+        "project": "find-the-question"
+      }
     },
     {
       "branch": "",
       "pipeline": "pipelines/default.yaml",
-      "description": "Custom default pipeline for all (other) branches"
+      "description": "Custom default pipeline for all (other) branches",
+      "parameters": {
+        "TheAnswer": "42"
+      },
+      "tags": {
+        "project": "find-the-question"
+      }
     },
     {
       "branch": "no-pipe-branch",
