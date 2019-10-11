@@ -8,8 +8,8 @@ ArtifactBucketName=$4
 BranchName=$4
 
 # Common variables
-ManagementStackName="pipeline-management-$CodeCommitRepoName"
-PipelineStackName="pipeline-branch-$BranchName"
+ManagementStackName="$CodeCommitRepoName-pipeline-management"
+PipelineStackName="$CodeCommitRepoName-pipeline-$BranchName"
 
 # Retrieve CodeCommit repository Arn
 CodeCommitRepoArn=$(aws codecommit get-repository \
@@ -105,9 +105,20 @@ case "$Mode" in
     # Tear down that branch pipeline
     echo "Deleting branch pipeline $PipelineStackName"
 
-    aws cloudformation delete-stack \
-                 --stack-name "$PipelineStackName"\
-                 --profile "$AWSCredentialsProfile"
+    # Get Lambda of the management stack
+    LambdaArn=$(aws cloudformation describe-stacks \
+                       --stack-name "$ManagementStackName" \
+                       --query="Stacks[0].Outputs[?OutputKey=='LambdaArn'].OutputValue" \
+                       --output=text \
+                       --profile "$AWSCredentialsProfile"
+                     )
+
+    aws lambda invoke \
+               --function-name "$LambdaArn" \
+               --payload "{\"Records\":[{\"eventTriggerName\":\"DeleteBranch\",\"codecommit\":{\"references\":[{\"ref\":\"refs/heads/$BranchName\"}]}}]}" \
+               lambda-response-tmp.txt \
+               --profile "$AWSCredentialsProfile"
+    rm lambda-response-tmp.txt
     ;;
 
   *)

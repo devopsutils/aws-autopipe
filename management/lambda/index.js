@@ -88,7 +88,7 @@ async function createOrUpdateBranch(record) {
 
     // Deploy template
     await cfn({
-      name: 'pipeline-branch-' + commitSpecifier.split('/')[2],
+      name: buildBranchStackName(commitSpecifier),
       template,
       cfParams,
       tags,
@@ -103,11 +103,21 @@ async function createOrUpdateBranch(record) {
   }
 }
 
+function buildBranchStackName(commitSpecifier) {
+  return `${CodeCommitRepoName}-pipeline-${commitSpecifier.split('/')[2]}`;
+}
+
 async function deleteBranch(record) {
   try {
-    console.log('Deleting a branch, CodeCommit Info:', JSON.stringify(record));
-    const stackName = 'pipeline-branch-' + record.codecommit.references[0].ref.split('/')[2];
-    console.log('Deleting Stack now:', stackName);
+    const commitSpecifier = record.codecommit.references[0].ref;
+
+    // Delete branch stacks created by this pipeline
+    // TODO console.log('Deleting all stacks created by this branch pipeline...');
+    // TODO await cfn.cleanup(new RegExp(`${CodeCommitRepoName}-${commitSpecifier.split('/')[2]}`),0);
+
+    console.log('Deleting this branch pipeline, CodeCommit Info:', JSON.stringify(record));
+    const stackName = buildBranchStackName(commitSpecifier);
+    console.log('Deleting branch pipeline:', stackName);
     await cfn.delete(stackName);
   } catch (error) {
     console.error('Got error: ', error);
