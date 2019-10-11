@@ -80,6 +80,10 @@ Resources:
               - Effect: Allow
                 Action:
                   - cloudformation:*
+                  - iam:*
+                  - sns:*
+                  - s3:*
+                  - codepipeline:*
                 Resource: "*"
               - Effect: Allow
                 Action:
